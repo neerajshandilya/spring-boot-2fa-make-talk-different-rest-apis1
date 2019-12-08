@@ -7,6 +7,7 @@ import com.sumutella.student.repositories.UserRepository;
 import com.sumutella.student.services.EmailSenderService;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,22 +32,21 @@ public class UserAccountController {
     }
 
     @RequestMapping(value="/register", method = RequestMethod.GET)
-    public ModelAndView displayRegistration(ModelAndView modelAndView, User user)
+    public String displayRegistration(Model model, User user)
     {
-        modelAndView.addObject("user", user);
-        modelAndView.setViewName("register");
-        return modelAndView;
+        model.addAttribute("user", user);
+        return "register";
     }
 
     @RequestMapping(value="/register", method = RequestMethod.POST)
-    public ModelAndView registerUser(ModelAndView modelAndView, User user)
+    public String registerUser(Model model, User user)
     {
 
         User existingUser = userRepository.findByEmailIdIgnoreCase(user.getEmailId());
         if(existingUser != null)
         {
-            modelAndView.addObject("message","This email already exists!");
-            modelAndView.setViewName("error");
+            model.addAttribute("message","This email already exists!");
+            return "error";
         }
         else
         {
@@ -65,16 +65,15 @@ public class UserAccountController {
 
             emailSenderService.sendEmail(mailMessage);
 
-            modelAndView.addObject("emailId", user.getEmailId());
+            model.addAttribute("emailId", user.getEmailId());
 
-            modelAndView.setViewName("successfulRegisteration");
+            return "successfulRegisteration";
         }
 
-        return modelAndView;
     }
 
     @RequestMapping(value="/confirm-account", method= {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView confirmUserAccount(ModelAndView modelAndView, @RequestParam("token")String confirmationToken)
+    public String confirmUserAccount(Model model, @RequestParam("token")String confirmationToken)
     {
         ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
 
@@ -83,14 +82,12 @@ public class UserAccountController {
             User user = userRepository.findByEmailIdIgnoreCase(token.getUser().getEmailId());
             user.setEnabled(true);
             userRepository.save(user);
-            modelAndView.setViewName("accountVerified");
+            return "accountVerified";
         }
         else
         {
-            modelAndView.addObject("message","The link is invalid or broken!");
-            modelAndView.setViewName("error");
+            model.addAttribute("message","The link is invalid or broken!");
+            return "error";
         }
-
-        return modelAndView;
     }
 }

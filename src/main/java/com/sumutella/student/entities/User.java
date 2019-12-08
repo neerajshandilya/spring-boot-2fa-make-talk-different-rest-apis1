@@ -26,8 +26,9 @@ public class User {
     private String emailId;
     @Column(name = "full_name")
     private String fullName;
+    private String username;
     private String password;
-    @Column(name="is_enabled")
-    private boolean isEnabled;
+    @Column(name="enabled")
+    private boolean enabled;
 
 }
